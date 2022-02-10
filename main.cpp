@@ -34,7 +34,7 @@ int main() {
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 
-	GLfloat vertices[] =
+	GLfloat triangleVertices[] =
 	{
 		-0.5f, -0.65f, 0.0f, //XYZ coords of first vertex
 		-0.63f, -0.41f, 0.0f,
@@ -92,17 +92,19 @@ int main() {
 
 	//Binding: Making a certain object the current object.
 	glBindVertexArray(VAO); //Bind VAO to store vertex buffers
+	
+	//Doc for glBindBuffer https://www.khronos.org/registry/OpenGL-Refpages/gl4/html/glBindBuffer.xhtml
 	glBindBuffer(GL_ARRAY_BUFFER, VBO); //ARRAY_BUFFER coz we need a Vertex Buffer
 	//See docs for other kind of buffers
 	//populate buffer
 	//params: type, size, data, use/purpose of buffer
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-	//https://www.khronos.org/registry/OpenGL-Refpages/es1.1/xhtml/glBufferData.xml
+	glBufferData(GL_ARRAY_BUFFER, sizeof(triangleVertices), triangleVertices, GL_STATIC_DRAW); //this method puts data in VBO as it is currently binded
+	//Doc for glBufferData https://www.khronos.org/registry/OpenGL-Refpages/es1.1/xhtml/glBufferData.xml
 
-	//Configure VAO
+	//Configure VAO, so that OpenGL can read a VBO
 	/*
-	* 0: Position of vertex attribute
-	* 3: Number of values per vertex (3 floats)\
+	* 0: Position of vertex attribute (a way of communicating with vertex shader from outside)
+	* 3: Number of values per vertex (3 floats)
 	* GL_FLOAT: type of values
 	* GL_FALSE: If using coordinates as integers
 	* 3 * sizeof(float): stride of vertices (amount of data per vertex)
@@ -110,11 +112,13 @@ int main() {
 	*/
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
 	//Enable VA at position 0
-	glEnableVertexAttribArray(0);
+	glEnableVertexAttribArray(0); //0 coz that's position of vertex attribute
 
 	//Optional step to prevent change
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindVertexArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0); //bind VBO to attribute at position 0
+	glBindVertexArray(0); //bind VAO to attribute at position 0
+
+	//QUESTION: Why do we bind VertexArray to 0, when binding for VAO has already been done?
 
 	//glClearColor(0.07f, 0.13f, 0.17f, 1.0f); -> not really needed for anything
 
@@ -132,9 +136,9 @@ int main() {
 		glClear(GL_COLOR_BUFFER_BIT);
 
 		//activate shader program
-		glUseProgram(shaderProgram);
-		glBindVertexArray(VAO); //Specify VAO as active vertex array, good practice
-		glDrawArrays(GL_TRIANGLES, 0, 3); //Draw a triangle Primitive starting at index 0, draw 3 vertices
+		glUseProgram(shaderProgram); //Start using a shader program
+		glBindVertexArray(VAO); //Specify VAO as active vertex array as this contains VBO with vertex data to draw
+		glDrawArrays(GL_TRIANGLES, 0, 3); //Draw a triangle Primitive starting at index 0, draw 3 vertices contained in VAO
 		glfwSwapBuffers(window); //Generate images every frame by swapping front and back buffers
 		//record window activity while open and active
 		glfwPollEvents();
